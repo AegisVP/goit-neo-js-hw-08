@@ -45,63 +45,9 @@ const galleryItems = [
     description: 'Lighthouse Coast Sea',
   },
 ];
-// Change code below this line
-
 const galleryRootEl = document.querySelector('div.gallery');
 const galleryHtmlMarkup = galleryItems.map(createImageCardMarkup).join('');
-class ModalWindow {
-  constructor(el) {
-    if (!el) {
-      return;
-    }
-
-    this.clickHandler = this.onModalClick.bind(this);
-
-    (this.onCloseCallback = null), (this.modalEl = el);
-  }
-
-  build(markup, onCloseCallback = none) {
-    if (!this.modalEl) {
-      console.error('no modal root defined');
-      return;
-    }
-
-    this.modalEl.innerHTML = markup;
-
-    if (onCloseCallback && typeof onCloseCallback === 'function') {
-      this.onCloseCallback = onCloseCallback;
-    }
-  }
-
-  show() {
-    this.modalEl.classList.add('is-open');
-    this.modalEl.addEventListener('click', this.clickHandler);
-  }
-
-  onModalClick(e) {
-    console.log(e.target);
-    if (e.target === this.modalEl) {
-      this.close();
-    }
-  }
-
-  close(e) {
-    this.modalEl.classList.remove('is-open');
-    this.modalEl.removeEventListener('click', this.clickHandler);
-    if (this.onCloseCallback) {
-      this.onCloseCallback();
-    }
-  }
-
-  visible() {
-    return this.modalEl.classList.contains('is-open');
-  }
-
-  element() {
-    return this.modalEl;
-  }
-}
-const instanceModal = new ModalWindow(document.querySelector('#modal'));
+let instanceModal;
 
 galleryRootEl.insertAdjacentHTML('afterbegin', galleryHtmlMarkup);
 galleryRootEl.addEventListener('click', onGalleryClick);
@@ -125,18 +71,19 @@ function onGalleryClick(e) {
   openModalImage(e.target.dataset.source);
 }
 
-const openModalImage = src => {
+function openModalImage(src) {
   if (instanceModal?.visible()) {
     instanceModal.close();
   }
 
-  instanceModal.build(`<img src="${src}" width="1280" alt="original">`, () => {
-    window.removeEventListener('keydown', onKeyboardClick);
+  instanceModal = basicLightbox.create(`<img src="${src}" width="1280" alt="original">`, {
+    onClose: () => {
+      window.removeEventListener('keydown', onKeyboardClick);
+    },
   });
   instanceModal.show();
   window.addEventListener('keydown', onKeyboardClick);
-  // console.log(instanceModal.element().querySelector('img').src);
-};
+}
 
 function closeModal() {
   instanceModal.close();
@@ -144,8 +91,6 @@ function closeModal() {
 
 function onKeyboardClick(e) {
   const oldSrcIndex = findCurrentSrcIndex(instanceModal.element().querySelector('img').src);
-
-  console.log('oldSrcIndex', oldSrcIndex);
 
   switch (e?.code) {
     case 'Escape':
